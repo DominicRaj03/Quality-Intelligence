@@ -33,6 +33,23 @@ if 'total_hours' not in st.session_state: st.session_state.total_hours = 40.5
 
 st.markdown("<h1 class='studio-title'>QUALITY INTELLIGENCE STUDIO</h1>", unsafe_allow_html=True)
 
+# Helper function to get preferred valid model
+def resolve_model(client):
+    preferred_models = [
+        "llama-3.3-70b-versatile",
+        "llama-3.1-70b-versatile",
+        "llama-3.1-8b-instant",
+        "llama3-70b-8192"
+    ]
+    try:
+        available_ids = [m.id for m in client.models.list().data]
+        for model in preferred_models:
+            if model in available_ids:
+                return model
+        return available_ids[0] if available_ids else "llama-3.1-8b-instant"
+    except Exception:
+        return "llama-3.1-70b-versatile"
+
 # --- 3. INNOVATIVE LOGIN INTERFACE ---
 if not st.session_state.authenticated:
     st.markdown("<div class='login-box'>", unsafe_allow_html=True)
@@ -87,8 +104,10 @@ else:
             if st.button("⚡ EXECUTE"):
                 try:
                     client = Groq(api_key=st.session_state.saved_key)
+                    target_model = resolve_model(client)
+                    
                     resp = client.chat.completions.create(
-                        model="llama-3.3-70b-versatile",
+                        model=target_model,
                         messages=[
                             {"role": "system", "content": f"QA Expert. Output direct records for {agent['name']}."}, 
                             {"role": "user", "content": prompt}
@@ -96,11 +115,12 @@ else:
                     )
                     # Prepare meta-stamped output
                     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                    meta_header = f"**OPERATOR:** {st.session_state.operator.upper()} | **TIMESTAMP:** {timestamp}\n\n---\n"
+                    meta_header = f"**OPERATOR:** {st.session_state.operator.upper()} | **MODEL:** `{target_model}` | **TIMESTAMP:** {timestamp}\n\n---\n"
                     st.session_state.last_out = meta_header + resp.choices[0].message.content
                     st.session_state.total_hours += agent['hr']
                     st.rerun()
-                except Exception as e: st.error(f"Error: {e}")
+                except Exception as e: 
+                    st.error(f"Error: {e}")
 
     # Output Console with Traceability
     if 'last_out' in st.session_state:
