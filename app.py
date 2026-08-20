@@ -15,8 +15,8 @@ st.markdown("""
     
     .login-box { 
         max-width: 700px; margin: 0 auto; padding: 50px; 
-        background: rgba(255, 255, 255, 0.02); backdrop-filter: blur(15px);
-        border-radius: 30px; border: 1px solid rgba(56, 189, 248, 0.2);
+        background: rgba(255, 255, 255, 0.02); backdrop-filter: blur(15px); 
+        border-radius: 30px; border: 1px solid rgba(56, 189, 248, 0.2); 
     }
 
     .kpi-card { background: rgba(255, 255, 255, 0.03); border-radius: 20px; padding: 25px; text-align: center; border: 1px solid rgba(255,255,255,0.1); }
@@ -89,7 +89,10 @@ else:
                     client = Groq(api_key=st.session_state.saved_key)
                     resp = client.chat.completions.create(
                         model="llama-3.3-70b-versatile",
-                        messages=[{"role": "system", "content": f"QA Expert. Output direct records for {agent['name']}."}, {"role": "user", "content": prompt}]
+                        messages=[
+                            {"role": "system", "content": f"QA Expert. Output direct records for {agent['name']}."}, 
+                            {"role": "user", "content": prompt}
+                        ]
                     )
                     # Prepare meta-stamped output
                     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -106,4 +109,3 @@ else:
         with h_l: st.markdown("### 📋 Strategic Traceability Output")
         with h_r: st.download_button("📥 EXPORT REPORT", data=st.session_state.last_out, file_name=f"Studio_Report_{st.session_state.operator}.md")
         st.markdown(f"<div class='console-box'>{st.session_state.last_out}</div>", unsafe_allow_html=True)
-
